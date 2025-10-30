@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Endereço Fácil - Obter CEP com JavaScript</title>
+    <style>
+        /* Estilos básicos para melhor visualização */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Garante que o padding não aumente a largura */
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #mensagem {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .erro {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .sucesso {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Meu Endereço Fácil</h1>
+        <p>Preencha automaticamente seu endereço digitando apenas o CEP.</p>
+
+        <form id="form-endereco">
+            <div class="form-group">
+                <label for="cep">CEP:</label>
+                <input type="text" id="cep" name="cep" maxlength="9" placeholder="Ex: 91140-001" required>
+            </div>
+
+            <button type="button" onclick="buscarEndereco()">Buscar Endereço</button>
+            
+            <hr>
+
+            <div class="form-group">
+                <label for="logradouro">Rua/Logradouro:</label>
+                <input type="text" id="logradouro" name="logradouro" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="bairro">Bairro:</label>
+                <input type="text" id="bairro" name="bairro" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="localidade">Cidade:</label>
+                <input type="text" id="localidade" name="localidade" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="uf">Estado (UF):</label>
+                <input type="text" id="uf" name="uf" maxlength="2" readonly>
+            </div>
+
+            <div id="mensagem"></div>
+
+        </form>
+    </div>
+
+    <script>
+        
+        function limparCampos() {
+            document.getElementById('logradouro').value = "";
+            document.getElementById('bairro').value = "";
+            document.getElementById('localidade').value = "";
+            document.getElementById('uf').value = "";
+            
+            const mensagemDiv = document.getElementById('mensagem');
+            mensagemDiv.textContent = "";
+            mensagemDiv.className = "";
+        }
+
+        
+        function exibirMensagem(texto, tipo) {
+            const mensagemDiv = document.getElementById('mensagem');
+            mensagemDiv.textContent = texto;
+            
+            mensagemDiv.className = tipo;
+        }
+
+        
+        async function buscarEndereco() {
+            
+            limparCampos();
+
+            
+            let cep = document.getElementById('cep').value;
+            
+            cep = cep.replace(/\D/g, ''); 
+
+            
+            if (cep === "" || cep.length !== 8) {
+                exibirMensagem("Por favor, digite um CEP válido com 8 dígitos.", "erro");
+                return; 
+            }
+
+            
+            const url = `https://viacep.com.br/ws/${cep}/json/`;
+
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // 6. Verificar o Retorno da API
+                if (data.erro) {
+                    // CEP não encontrado pela API
+                    exibirMensagem("CEP não encontrado. Por favor, verifique o número digitado.", "erro");
+                    limparCampos(); 
+                } else {
+                    
+                    document.getElementById('logradouro').value = data.logradouro;
+                    document.getElementById('bairro').value = data.bairro;
+                    document.getElementById('localidade').value = data.localidade;
+                    document.getElementById('uf').value = data.uf;
+                    exibirMensagem("Endereço preenchido com sucesso!", "sucesso");
+                }
+            } catch (error) {
+                
+                console.error("Erro na busca do CEP:", error);
+                exibirMensagem("Ocorreu um erro ao buscar o CEP. Tente novamente mais tarde.", "erro");
+                limparCampos();
+            }
+        }
+    </script>
+
+</body>
+</html>
